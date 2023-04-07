@@ -1,5 +1,5 @@
 import math
-from sklearn import neighbors
+from sklearn.neural_network import MLPClassifier
 import os
 import os.path
 import pickle
@@ -8,27 +8,7 @@ import face_recognition
 from face_recognition.face_recognition_cli import image_files_in_folder
 
 
-def train(train_dir, model_save_path=None, n_neighbors=None, knn_algo='ball_tree', verbose=False):
-    """
-    Trains a k-nearest neighbors classifier for face recognition.
-    :param train_dir: directory that contains a sub-directory for each known person, with its name.
-     (View in source code to see train_dir example tree structure)
-     Structure:
-        <train_dir>/
-        ├── <person1>/
-        │   ├── <somename1>.jpeg
-        │   ├── <somename2>.jpeg
-        │   ├── ...
-        ├── <person2>/
-        │   ├── <somename1>.jpeg
-        │   └── <somename2>.jpeg
-        └── ...
-    :param model_save_path: (optional) path to save model on disk
-    :param n_neighbors: (optional) number of neighbors to weigh in classification. Chosen automatically if not specified
-    :param knn_algo: (optional) underlying data structure to support knn.default is ball_tree
-    :param verbose: verbosity of training
-    :return: returns knn classifier that was trained on the given data.
-    """
+def train(train_dir, model_save_path=None, verbose=False):
     X = []
     y = []
 
@@ -57,29 +37,22 @@ def train(train_dir, model_save_path=None, n_neighbors=None, knn_algo='ball_tree
                 y.append(class_dir)
                 print(class_dir + " Added to database")
 
-    # Determine how many neighbors to use for weighting in the KNN classifier
-    if n_neighbors is None:
-        n_neighbors = int(round(math.sqrt(len(X))))
-        if verbose:
-            print("Chose n_neighbors automatically:", n_neighbors)
-
-    # Create and train the KNN classifier
-    knn_clf = neighbors.KNeighborsClassifier(
-        n_neighbors=n_neighbors, algorithm=knn_algo, weights='distance')
-    knn_clf.fit(X, y)
+    # Create and train the MLP classifier
+    MLP_clf = MLPClassifier(max_iter=500)
+    MLP_clf.fit(X, y)
 
     # Save the trained KNN classifier
     if model_save_path is not None:
         with open(model_save_path, 'wb') as f:
-            pickle.dump(knn_clf, f)
+            pickle.dump(MLP_clf, f)
 
-    return knn_clf
+    return MLP_clf
 
 
 if __name__ == "__main__":
     # STEP 1: Train the KNN classifier and save it to disk
     # Once the model is trained and saved, you can skip this step next time.
-    print("Training KNN classifier...")
+    print("Training MLP classifier...")
     classifier = train("TrainImages",
-                       model_save_path="trained_knn_model.clf", verbose=True)
+                       model_save_path="trained_MLP_model.clf", verbose=True)
     print("Training complete!")
