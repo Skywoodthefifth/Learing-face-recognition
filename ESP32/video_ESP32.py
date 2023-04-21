@@ -1,14 +1,14 @@
-import face_recognition
 import cv2
+import urllib.request
 import numpy as np
 
+import face_recognition
 import math
 from sklearn import neighbors
+
 import os
 import os.path
 import pickle
-
-import urllib.request
 
 
 def predict(X_img, knn_clf=None, model_path=None, distance_threshold=0.6):
@@ -52,29 +52,28 @@ def predict(X_img, knn_clf=None, model_path=None, distance_threshold=0.6):
     return [(pred, loc) if rec else ("unknown", loc) for pred, loc, rec in zip(knn_clf.predict(faces_encodings), X_face_locations, are_matches)]
 
 
-if __name__ == '__main__':
-    with urllib.request.urlopen("http://192.168.199.205/cam-hi.jpg") as url:
-        arr = np.asarray(bytearray(url.read()), dtype=np.uint8)
-        img = cv2.imdecode(arr, -1)  # 'Load it as it is'
+# change the IP address below according to the
+# IP shown in the Serial monitor of Arduino code
+url = 'http://192.168.199.205/cam-hi.jpg'
 
-    print("Loaded image")
+while True:
+    img_resp = urllib.request.urlopen(url)
+    imgnp = np.array(bytearray(img_resp.read()), dtype=np.uint8)
+    frame = cv2.imdecode(imgnp, -1)
 
     width = 640
     height = 480
     dim = (width, height)
 
     # resize image
-    resized = cv2.resize(img, dim, interpolation=cv2.INTER_AREA)
+    resized = cv2.resize(frame, dim, interpolation=cv2.INTER_AREA)
 
     rgb_frame = resized[:, :, ::-1]
 
     predictions = predict(
         rgb_frame, model_path="trained_knn_model.clf", distance_threshold=0.4)
 
-    print(predictions)
-
     for name, (top, right, bottom, left) in predictions:
-        print(name)
         # Draw a box around the face
         cv2.rectangle(resized, (left, top),
                       (right, bottom), (0, 0, 255), 2)
@@ -88,5 +87,8 @@ if __name__ == '__main__':
 
     cv2.imshow('Camera', resized)
 
-    if cv2.waitKey() & 0xFF == ord('q'):
-        quit()
+    key = cv2.waitKey(5)
+    if key == ord('q'):
+        break
+
+cv2.destroyAllWindows()
