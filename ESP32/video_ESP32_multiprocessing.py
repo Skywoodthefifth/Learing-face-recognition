@@ -89,7 +89,7 @@ def capture(read_frame_list, Global, worker_num):
     # print("Width: %d, Height: %d, FPS: %d" %
     #   (video_capture.get(3), video_capture.get(4), video_capture.get(5)))
 
-    url = 'http://192.168.199.205/cam-hi.jpg'
+    url = 'http://192.168.114.126/cam-hi.jpg'
 
     width = 640
     height = 480
@@ -102,7 +102,7 @@ def capture(read_frame_list, Global, worker_num):
             # ret, frame = video_capture.read()
 
             img_resp = urllib.request.urlopen(url)
-            imgnp = np.array(bytearray(img_resp.read()), dtype=np.uint8)
+            imgnp = numpy.array(bytearray(img_resp.read()), dtype=numpy.uint8)
             frame = cv2.imdecode(imgnp, -1)
 
             # resize image
